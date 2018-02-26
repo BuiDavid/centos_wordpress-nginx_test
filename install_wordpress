@@ -1,0 +1,50 @@
+yum -y install mariadb mariadb-server
+systemctl start mariadb
+systemctl enable mariadb
+yum -y install nginx
+systemctl restart nginx
+# Allow nginx through firewall
+sudo firewall-cmd --permanent --zone=public --add-service=http
+sudo firewall-cmd --permanent --zone=public --add-service=https
+sudo firewall-cmd --permanent --zone=public --add-port=80/tcp
+sudo firewall-cmd --permanent --zone=public --add-port=80/udp
+sudo firewall-cmd --reload
+systemctl enable nginx
+yum -y install php-fpm php-mysql php-cli
+
+cp php.ini /etc/php.ini
+cp www.conf /etc/php-fpm.d/
+cp virtual.conf /etc/nginx/conf.d/
+
+mkdir /usr/share/nginx/html/dtbui.local
+
+systemctl restart nginx
+systemctl restart php-fpm
+systemctl enable php-fpm
+
+yum -y install phpmyadmin php
+
+cp phpMyAdmin.conf /etc/nginx/conf.d/
+
+systemctl restart nginx
+systemctl restart php-fpm
+
+cp wordpress.conf /etc/nginx/conf.d/
+
+mkdir /usr/share/nginx/wordpress.dtbui.local
+mkdir /usr/share/nginx/wordpress.dtbui.local/logs
+
+systemctl restart nginx
+systemctl restart php-fpm
+
+mysql -u root -p
+CREATE DATABASE wordpress;
+CREATE USER 'dtbui'@'localhost' IDENTIFIED BY 'testing123!';
+GRANT ALL PRIVILEGES ON wordpress.* TO 'dtbui'@'localhost';
+exit
+
+
+wget http://wordpress.org/latest.tar.gz
+tar -zxvf latest.tar.gz
+cp wp-config.php /usr/share/nginx/wordpress.dtbui.local/
+chown -R nginx:nginx /usr/share/nginx/wordpress.dtbui.local/
